@@ -1,0 +1,10 @@
+import express from 'express';
+import { getAssessments, getAssessment, startAssessment, submitAssessment } from '../controllers/assessmentController';
+import { protect } from '../middleware/auth';
+const router = express.Router();
+router.use(protect);
+router.get('/', getAssessments);
+router.get('/:id', getAssessment);
+router.post('/start', startAssessment);
+router.post('/:id/submit', submitAssessment);
+export default router;
