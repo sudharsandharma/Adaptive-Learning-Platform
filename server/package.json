@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsc && node dist/index.js",
-    "build": "tsc",
+    "build": "node node_modules/typescript/bin/tsc",
     "start": "node dist/index.js",
-    "seed": "tsc && node dist/seed.js"
+    "seed": "node node_modules/typescript/bin/tsc && node dist/seed.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
