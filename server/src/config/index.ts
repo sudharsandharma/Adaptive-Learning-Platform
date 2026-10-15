@@ -4,7 +4,7 @@ dotenv.config();
 
 export const config = {
   port: process.env.PORT || 5000,
-  mongodbUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27018/nomad',
+  mongodbUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/nomad',
   jwtSecret: process.env.JWT_SECRET || 'nomad-edu-super-secret-jwt-key-2026',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   openaiApiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key',

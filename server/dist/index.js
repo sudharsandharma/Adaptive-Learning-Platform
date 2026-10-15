@@ -20,10 +20,30 @@ const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true);
+        if (origin.includes('localhost') ||
+            origin.includes('127.0.0.1') ||
+            origin.endsWith('.vercel.app') ||
+            (process.env.CLIENT_URL && origin === process.env.CLIENT_URL)) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
 app.use(express_1.default.json({ limit: '10mb' }));
+// Ensure DB connection for serverless requests
+app.use(async (_req, _res, next) => {
+    try {
+        await (0, database_1.connectDB)();
+        next();
+    }
+    catch (error) {
+        next(error);
+    }
+});
 // Health check
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -55,5 +75,13 @@ const startServer = async () => {
         process.exit(1);
     }
 };
-startServer();
+// Only listen directly when not running in Vercel serverless environment
+if (process.env.VERCEL !== '1' && !process.env.NOW_REGION) {
+    startServer();
+}
+exports.default = app;
+// @ts-ignore CommonJS export compatibility
+module.exports = app;
+// @ts-ignore
+module.exports.default = app;
 //# sourceMappingURL=index.js.map

@@ -18,10 +18,31 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.endsWith('.vercel.app') ||
+      (process.env.CLIENT_URL && origin === process.env.CLIENT_URL)
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
+
+// Ensure DB connection for serverless requests
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -57,4 +78,14 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Only listen directly when not running in Vercel serverless environment
+if (process.env.VERCEL !== '1' && !process.env.NOW_REGION) {
+  startServer();
+}
+
+export default app;
+// @ts-ignore CommonJS export compatibility
+module.exports = app;
+// @ts-ignore
+module.exports.default = app;
+
