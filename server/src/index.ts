@@ -34,19 +34,35 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 
-// Ensure DB connection for serverless requests
-app.use(async (_req, _res, next) => {
+// Health check (does not require DB connection)
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: config.nodeEnv,
+    isVercel: process.env.VERCEL === '1'
+  });
+});
+
+// Ensure DB connection for API requests
+app.use(async (req, res, next) => {
+  if (process.env.VERCEL === '1' && (!config.mongodbUri || config.mongodbUri.includes('127.0.0.1'))) {
+    return res.status(503).json({
+      success: false,
+      error: 'MongoDB is not configured on Vercel. Please add MONGODB_URI (e.g. MongoDB Atlas connection string) to your Vercel Project Environment Variables.'
+    });
+  }
+
   try {
     await connectDB();
     next();
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    console.error('Database connection failed:', error?.message);
+    res.status(503).json({
+      success: false,
+      error: `Database connection failed: ${error?.message || 'Unable to reach MongoDB'}. Check MONGODB_URI in Vercel.`
+    });
   }
-});
-
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Routes

@@ -14,7 +14,9 @@ export const connectDB = async () => {
   }
 
   try {
-    cachedPromise = mongoose.connect(config.mongodbUri);
+    cachedPromise = mongoose.connect(config.mongodbUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
     const conn = await cachedPromise;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     return conn.connection;

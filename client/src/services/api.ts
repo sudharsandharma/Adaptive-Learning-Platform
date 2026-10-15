@@ -28,8 +28,13 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    // Extract error message from backend response
-    const message = error.response?.data?.error || error.message || 'An error occurred';
+    // Extract error message from backend or platform response
+    const backendError = error.response?.data?.error;
+    const message =
+      (typeof backendError === 'string' ? backendError : backendError?.message) ||
+      error.response?.data?.message ||
+      error.message ||
+      'An error occurred';
     return Promise.reject(new Error(message));
   }
 );
